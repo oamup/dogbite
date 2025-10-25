@@ -1,1 +1,9 @@
-This is a simple 
+This is a two player dog fight game developed using simple html.
+
+How to play--
+
+Use wasd keys for player 1 and arrow keys for player 2.
+Dogs moves left and right using left and right arrow keys and 'a' and 's'.
+'w' and up arrow for jump.
+'s' and down arrow to bite other dog. 
+First to get low on health looses the game.
