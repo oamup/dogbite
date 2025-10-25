@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>2 Player Fighting Game - Animated Dogs</title>
+  <style>
+    body {
+      margin: 0;
+      background: #222;
+      overflow: hidden;
+      font-family: sans-serif;
+    }
+
+    #homeScreen, #game {
+      width: 100vw;
+      height: 100vh;
+      position: absolute;
+      top: 0;
+      left: 0;
+      background: url('background2.png') no-repeat center center;
+      background-size: contain;
+      background-color: #000;
+    }
+
+    #homeScreen {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      z-index: 2;
+    }
+
+    #startButton {
+      padding: 20px 40px;
+      font-size: 24px;
+      background: limegreen;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+
+    #startButton:hover {
+      background: darkgreen;
+    }
+
+    .player, .player2 {
+      width: 100px;
+      height: 100px;
+      position: absolute;
+      background-repeat: no-repeat;
+      background-position: center bottom;
+      background-size: cover;
+      background-image: url('dog.png');
+    }
+
+    .player2 {
+      background-image: url('dog2.png');
+    }
+
+    .running {
+      background-image: url('runningdog.png') !important;
+      animation: dogRun 0.6s steps(3) infinite;
+      background-size: 300px 100px;
+    }
+
+    .running2 {
+      background-image: url('runningdog2.png') !important;
+      animation: dogRun 0.6s steps(3) infinite;
+      background-size: 300px 100px;
+    }
+
+    @keyframes dogRun {
+      from { background-position: 0 0; }
+      to { background-position: -300px 0; }
+    }
+
+    .platform {
+      position: absolute;
+      width: 100px;
+      height: 10px;
+      background: #666;
+    }
+
+    .health-bar {
+      position: absolute;
+      top: 10px;
+      width: 40%;
+      height: 20px;
+      background: darkred;
+    }
+
+    .health {
+      height: 100%;
+      background: lime;
+    }
+
+    #health1 {
+      left: 10px;
+    }
+
+    #health2 {
+      right: 10px;
+    }
+
+    #winner {
+      color: white;
+      text-align: center;
+      font-size: 32px;
+      position: absolute;
+      top: 40%;
+      width: 100%;
+      display: none;
+    }
+
+    #controls {
+      display: none;
+      position: absolute;
+      top: 60%;
+      width: 100%;
+      text-align: center;
+    }
+
+    #controls button {
+      margin: 10px;
+      padding: 10px 20px;
+      font-size: 20px;
+      cursor: pointer;
+      border: none;
+      border-radius: 8px;
+    }
+
+    #restartButton {
+      background: #2196F3;
+      color: white;
+    }
+
+    #homeButton {
+      background: #f44336;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+
+  
+  <div id="homeScreen">
+    <h1 style="color:white; font-size: 40px;">2 Player Fighting Game</h1>
+    <button id="startButton">Start 2 Players Bite</button>
+  </div>
+
+  
+  <div id="game" style="display:none;">
+    <div class="health-bar" id="health1">
+      <div class="health" id="p1Health" style="width:100%"></div>
+    </div>
+    <div class="health-bar" id="health2">
+      <div class="health" id="p2Health" style="width:100%"></div>
+    </div>
+
+    <!-- Platforms -->
+    <div class="platform" style="left: 400px; top: 500px;"></div>
+    <div class="platform" style="left: 300px; top: 700px;"></div>
+    <div class="platform" style="left: 150px; top: 600px;"></div>
+    <div class="platform" style="left: 900px; top: 600px;"></div>
+    <div class="platform" style="left: 870px; top: 700px;"></div>
+    <div class="platform" style="left: 500px; top: 450px;"></div>
+    <div class="platform" style="left: 600px; top: 350px;"></div>
+    <div class="platform" style="left: 700px; top: 200px;"></div>
+    <div class="platform" style="left: 300px; top: 500px;"></div>
+    <div class="platform" style="left: 200px; top: 350px;"></div>
+    <div class="platform" style="left: 800px; top: 400px;"></div>
+    <div class="platform" style="left: 1000px; top: 500px;"></div>
+    <div class="platform" style="left: 1100px; top: 400px;"></div>
+    <div class="platform" style="left: 1250px; top: 300px;"></div>
+    <div class="platform" style="left: 1050px; top: 200px;"></div>
+    <div class="platform" style="left: 1200px; top: 100px;"></div>
+    <div class="platform" style="left: 300px; top: 200px;"></div>
+
+    <div class="player" id="player1" style="left: 100px;"></div>
+    <div class="player2" id="player2" style="left: 600px;"></div>
+
+    <div id="winner"></div>
+
+
+    <div id="controls">
+      <button id="restartButton">Restart</button>
+      <button id="homeButton">Home</button>
+    </div>
+  </div>
+
+  <script>
+    const homeScreen = document.getElementById("homeScreen");
+    const gameScreen = document.getElementById("game");
+    const startButton = document.getElementById("startButton");
+    const restartButton = document.getElementById("restartButton");
+    const homeButton = document.getElementById("homeButton");
+    const winnerText = document.getElementById("winner");
+    const controls = document.getElementById("controls");
+
+    let player1, player2, p1Health, p2Health, platforms;
+
+    startButton.onclick = () => {
+      homeScreen.style.display = "none";
+      gameScreen.style.display = "block";
+      initGame();
+    };
+
+    homeButton.onclick = () => {
+      location.reload(); 
+    };
+
+    restartButton.onclick = () => {
+      location.reload(); 
+    };
+
+    function initGame() {
+      player1 = document.getElementById("player1");
+      player2 = document.getElementById("player2");
+      p1Health = document.getElementById("p1Health");
+      p2Health = document.getElementById("p2Health");
+      platforms = document.querySelectorAll(".platform");
+
+      const gravity = 1;
+      const jumpStrength = 18;
+      const groundLevel = window.innerHeight - 100;
+
+      let pos1 = { x: 100, y: groundLevel };
+      let pos2 = { x: 600, y: groundLevel };
+      let vel1 = { y: 0 };
+      let vel2 = { y: 0 };
+      let canJump1 = true;
+      let canJump2 = true;
+
+      let health1 = 100;
+      let health2 = 100;
+      const speed = 10;
+      const keys = {};
+      let isAttacking1 = false;
+      let isAttacking2 = false;
+
+      document.addEventListener("keydown", e => keys[e.key] = true);
+      document.addEventListener("keyup", e => keys[e.key] = false);
+
+      function isOnPlatform(pos, velocity) {
+        for (let platform of platforms) {
+          const rect = {
+            left: platform.offsetLeft,
+            right: platform.offsetLeft + platform.offsetWidth,
+            top: platform.offsetTop
+          };
+          const px = pos.x;
+          const py = pos.y + 100;
+          if (
+            px + 100 > rect.left &&
+            px < rect.right &&
+            Math.abs(py - rect.top) < 10 &&
+            velocity.y >= 0
+          ) {
+            return rect.top - 100;
+          }
+        }
+        return null;
+      }
+
+      function update() {
+        if (!isAttacking1) {
+          if (keys["a"]) pos1.x -= speed;
+          if (keys["d"]) pos1.x += speed;
+          if (keys["w"] && canJump1) {
+            vel1.y = -jumpStrength;
+            canJump1 = false;
+          }
+        }
+
+        if (!isAttacking2) {
+          if (keys["ArrowLeft"]) pos2.x -= speed;
+          if (keys["ArrowRight"]) pos2.x += speed;
+          if (keys["ArrowUp"] && canJump2) {
+            vel2.y = -jumpStrength;
+            canJump2 = false;
+          }
+        }
+
+        if (keys["a"]) player1.style.transform = "scaleX(-1)";
+        else if (keys["d"]) player1.style.transform = "scaleX(1)";
+        if (keys["ArrowLeft"]) player2.style.transform = "scaleX(1)";
+        else if (keys["ArrowRight"]) player2.style.transform = "scaleX(-1)";
+
+        if ((keys["a"] || keys["d"]) && !isAttacking1) {
+          player1.classList.add("running2");
+        } else {
+          player1.classList.remove("running2");
+        }
+
+        if ((keys["ArrowLeft"] || keys["ArrowRight"]) && !isAttacking2) {
+          player2.classList.add("running");
+        } else {
+          player2.classList.remove("running");
+        }
+
+        vel1.y += gravity;
+        vel2.y += gravity;
+        pos1.y += vel1.y;
+        pos2.y += vel2.y;
+
+        const newY1 = isOnPlatform(pos1, vel1);
+        if (newY1 !== null) {
+          pos1.y = newY1;
+          vel1.y = 0;
+          canJump1 = true;
+        } else if (pos1.y >= groundLevel) {
+          pos1.y = groundLevel;
+          vel1.y = 0;
+          canJump1 = true;
+        }
+
+        const newY2 = isOnPlatform(pos2, vel2);
+        if (newY2 !== null) {
+          pos2.y = newY2;
+          vel2.y = 0;
+          canJump2 = true;
+        } else if (pos2.y >= groundLevel) {
+          pos2.y = groundLevel;
+          vel2.y = 0;
+          canJump2 = true;
+        }
+
+        pos1.x = Math.max(0, Math.min(window.innerWidth - 100, pos1.x));
+        pos2.x = Math.max(0, Math.min(window.innerWidth - 100, pos2.x));
+
+        player1.style.left = pos1.x + "px";
+        player1.style.top = pos1.y + "px";
+        player2.style.left = pos2.x + "px";
+        player2.style.top = pos2.y + "px";
+
+        if (keys["s"] && !isAttacking1) {
+          isAttacking1 = true;
+          player1.style.backgroundImage = "url('biting1.png')";
+          setTimeout(() => {
+            isAttacking1 = false;
+            player1.style.backgroundImage = "url('dog.png')";
+          }, 300);
+          if (Math.abs(pos1.x - pos2.x) < 60 && Math.abs(pos1.y - pos2.y) < 60) {
+            health2 = Math.max(0, health2 - 10);
+            p2Health.style.width = health2 + "%";
+          }
+        }
+
+        if (keys["ArrowDown"] && !isAttacking2) {
+          isAttacking2 = true;
+          player2.style.backgroundImage = "url('biting.png')";
+          setTimeout(() => {
+            isAttacking2 = false;
+            player2.style.backgroundImage = "url('dog2.png')";
+          }, 300);
+          if (Math.abs(pos2.x - pos1.x) < 60 && Math.abs(pos2.y - pos1.y) < 60) {
+            health1 = Math.max(0, health1 - 10);
+            p1Health.style.width = health1 + "%";
+          }
+        }
+
+        if (health1 <= 0) {
+          winnerText.innerText = "Player 2 Wins!";
+          winnerText.style.display = "block";
+          controls.style.display = "block";
+          return;
+        } else if (health2 <= 0) {
+          winnerText.innerText = "Player 1 Wins!";
+          winnerText.style.display = "block";
+          controls.style.display = "block";
+          return;
+        }
+
+        requestAnimationFrame(update);
+      }
+
+      update();
+    }
+  </script>
+</body>
+</html>
